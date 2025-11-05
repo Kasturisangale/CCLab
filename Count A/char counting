@@ -1,0 +1,37 @@
+%{
+#include <stdio.h>
+int upper = 0;
+int lower = 0;
+FILE* yyin;
+%}
+
+%%
+[a-z] {lower++;}
+[A-Z] {upper++;}
+. {}
+\n {}
+
+%%
+
+int main(int argc, char* argv[]) {
+    if (argc == 2) {
+        yyin = fopen(argv[1],"r");
+        if(!yyin){
+         perror("File opening failed");
+         return 1;
+        }
+    }
+    else{
+     printf("Enter the input:\n");
+     yyin = stdin;
+    }
+
+    yylex();
+    printf("Lowercase characters: %d\n",lower);
+    printf("Uppercase characters: %d\n",upper);
+    return 0;
+}
+int yywrap() {
+    return 1;
+}
+
