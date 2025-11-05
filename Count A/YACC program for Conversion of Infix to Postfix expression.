@@ -1,0 +1,39 @@
+Exp7_2.y:  
+%{  
+#include <stdio.h>  
+int yylex(void);  
+void yyerror(const char *s) { printf("Error: %s\n", s); }  
+%}  
+%token DIGIT  
+%left '+' '-'  
+%left '*' '/'  
+%% 
+ 
+ 
+ expr:  
+expr '+' expr { printf("+ "); }  
+| expr '-' expr { printf("- "); }  
+| expr '*' expr { printf("* "); }  
+| expr '/' expr { printf("/ "); }  
+| '(' expr ')' { /* grouping - no output */ }  
+| DIGIT { printf("%c ", $1); }  
+;  
+%%  
+int main() {  
+printf("Enter infix expression:\n");  
+yyparse();  
+printf("\n");  
+return 0;  
+}  
+Exp7_2.l:  
+#include "y.tab.h"  
+%}  
+%%  
+[0-9] { yylval = yytext[0]; return DIGIT; }  
+[+\-*/()] { return yytext[0]; }  
+[ \t\n] ; /* skip whitespace */  
+. { printf("Invalid character: %s\n", yytext); }  
+%%  
+int yywrap() {  
+return 1;  
+}
