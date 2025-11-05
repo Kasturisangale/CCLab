@@ -1,0 +1,71 @@
+ic_prog.l  
+%{  
+#include "ic_prog_simple.tab.h"  
+#include <stdio.h>  
+#include <stdlib.h>  
+%}  
+%%  
+[0-9]+ { yylval.ival = atoi(yytext); return NUM; } 
+[a-zA-Z_][a-zA-Z0-9_]* { yylval.sval = strdup(yytext); return 
+ID; } [\n] { return '\n'; }  
+[\t ]+ ; // ignore whitespace  
+. { return yytext[0]; } // operators and parentheses %%  
+int yywrap() { return 1; } 
+ 
+ 
+ic_prog.y  
+%{  
+#include <stdio.h>  
+#include <stdlib.h>  
+#include <string.h>  
+int tempCount = 1;  
+char tempVar[10];  
+void newTemp() { sprintf(tempVar, "t%d", tempCount++); }  
+int yylex(void);  
+int yyerror(const char *msg);  
+%}  
+%union {  
+int ival;  
+char *sval;  
+}  
+%token <ival> NUM  
+%token <sval> ID  
+%type <sval> E  
+%left '+' '-'  
+%left '*' '/'  
+%left '(' ')'  
+%%  
+S : Stmts  
+;  
+Stmts  
+: Stmts Stmt  
+| Stmt  
+;  
+Stmt  
+: ID '=' E '\n' { printf("%s = %s\n", $1, $3); free($1); free($3); 
+}  ;  
+E  
+: E '+' E { newTemp(); printf("%s = %s + %s\n", tempVar, $1, $3); $$ =  
+strdup(tempVar); free($1); free($3); }  
+| E '-' E { newTemp(); printf("%s = %s - %s\n", tempVar, $1, $3); $$ =  
+strdup(tempVar); free($1); free($3); }  
+| E '*' E { newTemp(); printf("%s = %s * %s\n", tempVar, $1, $3); $$ =  
+strdup(tempVar); free($1); free($3); }  
+ | E '/' E { newTemp(); printf("%s = %s / %s\n", tempVar, $1, $3); $$ =  
+strdup(tempVar); free($1); free($3); } 
+ 
+ 
+  | '(' E ')' { $$ = $2; }  
+ | NUM { char buff[20]; sprintf(buff, "%d", $1); $$ = strdup(buff); 
+}  | ID { $$ = strdup($1); free($1); }  
+ ;  
+%%  
+int main() {  
+ printf("Enter program statements:\n");  
+ yyparse();  
+ return 0;  
+}  
+int yyerror(const char *msg) {  
+ printf("Error: %s\n", msg);  
+ return 0;  
+} 
