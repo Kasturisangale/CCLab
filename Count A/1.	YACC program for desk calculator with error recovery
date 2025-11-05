@@ -1,0 +1,82 @@
+
+Lex Code 
+%{
+#include "y.tab.h"
+extern int yylval;
+%}
+
+%%
+[ \t]                   ;          
+[0-9]+    { yylval = atoi(yytext); return NUMBER; }
+[a-z]       { yylval = yytext[0] - 'a'; return VARIABLE; }
+"="         { return '='; }
+\n           { return '\n'; }
+.                      { return yytext[0]; }
+%%
+int yywrap(void){
+return 1;
+}
+
+Yacc Code
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+int vars[26];  // Variables a to z
+
+void yyerror(const char *s);
+int yylex();
+%}
+
+%token NUMBER VARIABLE
+%left '+' '-'
+%left '*' '/'
+%right UMINUS
+%start input
+
+%%
+
+input:
+    /* empty */
+  | input line
+  ;
+
+line:
+    '\n'
+  | expr '\n'          { printf("Result: %d\n", $1); }
+  | VARIABLE '=' expr '\n'  { vars[$1] = $3; printf("%c = %d\n", $1 + 'a', $3); }
+  | error '\n'         { yyerror("Syntax error: Invalid expression."); yyerrok; }
+  ;
+
+expr:
+    NUMBER             { $$ = $1; }
+  | VARIABLE           { $$ = vars[$1]; }
+  | expr '+' expr      { $$ = $1 + $3; }
+  | expr '-' expr      { $$ = $1 - $3; }
+  | expr '*' expr      { $$ = $1 * $3; }
+  | expr '/' expr      {
+                         if ($3 == 0) {
+                             yyerror("Division by zero");
+                             $$ = 0;
+                         } else {
+                             $$ = $1 / $3;
+                         }
+                       }
+  | '-' expr %prec UMINUS  { $$ = -$2; }
+  | '(' expr ')'       { $$ = $2; }
+  ;
+
+%%
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+int main() {
+    printf("Simple Desk Calculator\n");
+    printf("Supports: + - * /, (), variables (a to z), and assignments.\n");
+    printf("Example: a = 3 + 4\n\n");
+    yyparse();
+    return 0;
+}
