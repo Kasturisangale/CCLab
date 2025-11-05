@@ -1,0 +1,53 @@
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+int yylex(void);
+void yyerror(const char *s);
+%}
+
+%token IF THEN ELSE ID NUM RELOP
+
+%%
+
+stmt : IF condition THEN stmt ELSE stmt
+     | IF condition THEN stmt
+     | ID
+     ;
+
+condition : ID RELOP ID
+          | ID RELOP NUM
+          ;
+
+%%
+
+int main() {
+    printf("Enter an if-then(-else) statement:\n");
+    if (yyparse() == 0)
+        printf("Valid syntax!\n");
+    return 0;
+}
+
+void yyerror(const char *s) {
+    printf("Syntax Error: %s\n", s);
+}
+
+Lex file:
+%{
+#include "y.tab.h"
+%}
+
+%%
+"if"                { return IF; }
+"then"              { return THEN; }
+"else"              { return ELSE; }
+[0-9]+              { yylval = atoi(yytext); return NUM; }
+[a-zA-Z_][a-zA-Z0-9_]* { return ID; }
+"=="|"<"|">"        { return RELOP; }
+[ \t\n]+            ;   /* skip whitespace */
+.                   { return yytext[0]; }
+%%
+
+int yywrap() { return 1; }
+
