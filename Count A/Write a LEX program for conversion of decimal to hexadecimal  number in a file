@@ -1,0 +1,33 @@
+%{ 
+#include <stdio.h> 
+#include <stdlib.h> 
+%} 
+ 
+%% 
+ 
+[0-9]+    { 
+              int num = atoi(yytext); 
+              printf("Decimal: %s → Hexadecimal: %X\n", yytext, num); 
+          } 
+ 
+[ \t\n]+  ;    
+.         ;    
+ 
+%% 
+ 
+int main(int argc, char *argv[]) { 
+    if (argc > 1) 
+        yyin = fopen(argv[1], "r");   
+    yylex(); 
+    return 0; 
+} 
+int yywrap() { 
+    return 1; 
+} 
+ 
+Input file – numbers.txt 
+25 
+100 
+255 
+0 
+7
