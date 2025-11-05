@@ -1,0 +1,30 @@
+%{ 
+#include <stdio.h> 
+int edu_count = 0, com_count = 0, org_count = 0; 
+%} 
+ 
+%% 
+.*\.edu[\n] { edu_count++; } 
+.*\.com[\n] { com_count++; } 
+.*\.org[\n] { org_count++; } 
+.*\n {} 
+%% 
+ 
+int main(int argc, char *argv[]) { 
+    if (argc > 1) { 
+        yyin = fopen(argv[1], "r"); 
+        if (!yyin) { 
+            perror("Cannot open file"); 
+            return 1; 
+        } 
+    } 
+    yylex(); 
+    printf("\nLines ending with .edu: %d\n", edu_count); 
+    printf("Lines ending with .com: %d\n", com_count); 
+    printf("Lines ending with .org: %d\n", org_count); 
+    return 0; 
+} 
+ 
+int yywrap() { 
+    return 1; 
+} 
