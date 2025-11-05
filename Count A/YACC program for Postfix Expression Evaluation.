@@ -1,0 +1,63 @@
+exp7_1.y:  
+%{  
+#include <stdio.h>  
+#include <stdlib.h>  
+extern int yylex();  
+int yyerror(const char*);  
+int pop();  
+void push(int);  
+/* stack variables */  
+int stack[100];  
+int top = -1;  
+%}  
+%union {  
+int n;  
+}  
+%token <n> oprnd  
+%% 
+ 
+ 
+S:  
+| E { printf("\nResult = %d\n", pop()); }  
+;  
+E: E E '+' { int a = pop(); int b = pop(); push(b + a); }  
+| E E '-' { int a = pop(); int b = pop(); push(b - a); }  
+| E E '*' { int a = pop(); int b = pop(); push(b * a); }  
+| E E '/' { int a = pop(); int b = pop(); push(b / a); }  
+| oprnd { push($1); }  
+;  
+%%  
+void push(int val) {  
+stack[++top] = val;  
+}  
+int pop() {  
+return stack[top--];  
+}  
+int main() {  
+printf("\nEnter the postfix expression: ");  
+yyparse();  
+return 0;  
+}  
+int yyerror(const char *s) {  
+fprintf(stderr, "\nError: %s\n", s);  
+return 0;  
+}  
+Exp7_1.l:  
+%{  
+#include <stdio.h>  
+#include <stdlib.h>  
+#include "y.tab.h"  
+%}  
+digit [0-9]  
+number {digit}+  
+operator [+\-*/]  
+%%  
+{number} { yylval.n = atoi(yytext); return oprnd; }  
+{operator} { return yytext[0]; }  
+. ;  
+%%  
+int yywrap() {  
+return 1; 
+ 
+ 
+ }
