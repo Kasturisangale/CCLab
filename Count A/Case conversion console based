@@ -1,0 +1,30 @@
+%{
+#include <stdio.h>
+%}
+
+%%
+[a-z] {printf("%c", yytext[0] -32);}
+[A-Z] {printf("%c", yytext[0] +32);}
+. {printf("%c", yytext[0]);}
+%%
+
+int main(int argc, char* argv[1]) {
+    if (argc == 2) {
+        yyin = fopen(argv[1],"r");
+        if(!yyin){
+         perror("File opening failed");
+         return 1;
+        }
+    }
+    else{
+     fprintf(stderr,"Usage: %s <input>\n",argv[0]);
+    }
+
+    yylex();
+    fclose(yyin);
+    return 0;
+}
+int yywrap() {
+    return 1;
+}
+
