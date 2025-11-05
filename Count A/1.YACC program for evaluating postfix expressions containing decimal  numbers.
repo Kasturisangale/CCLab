@@ -1,0 +1,81 @@
+Exp7_postlab.y:  
+%{  
+#include <stdio.h>  
+#include <stdlib.h>  
+extern int yylex();  
+int yyerror(const char*);  
+float pop();  
+void push(float);  
+float stack[100];  
+int top = -1;  
+%}  
+%union {  
+float f;  
+} 
+ 
+ 
+%token <f> oprnd  
+%%  
+S:  
+;  
+| E { printf("\nResult = %f\n", pop()); }  
+E: E E '+' {  
+float a = pop();  
+float b = pop();  
+push(b + a);  
+}  
+| E E '-' {  
+float a = pop();  
+float b = pop();  
+push(b - a);  
+}  
+| E E '*' {  
+float a = pop();  
+float b = pop();  
+push(b * a);  
+}  
+| E E '/' {  
+float a = pop();  
+float b = pop();  
+push(b / a);  
+}  
+| oprnd { 
+push($1);  
+}  
+;  
+%%  
+void push(float val) {  
+stack[++top] = val;  
+}  
+float pop() {  
+return stack[top--];  
+}  
+int main() {  
+printf("\nEnter the postfix expression: ");  
+yyparse();  
+return 0;  
+}  
+int yyerror(const char *s) {  
+fprintf(stderr, "\nError: %s\n", s);  
+return 0;  
+} 
+Exp_postlab.l:  
+%{  
+#include <stdio.h>  
+#include <stdlib.h> /* for atof */ 
+ 
+ 
+ #include "y.tab.h"  
+%}  
+digit [0-9]  
+number {digit}+(\.[0-9]+)? /* integers or floats */  
+operator [+\-*/]  
+%%  
+{number} { yylval.f = atof(yytext); return oprnd; }  
+{operator} { return yytext[0]; }  
+[ \t\n] { ; } /* ignore whitespace */  
+. { ; } /* ignore everything else */  
+%%  
+int yywrap() {  
+return 1;  
+}
